@@ -72,7 +72,7 @@
 @property (nonatomic, weak) UIView *realMasterView;
 
 @property (nonatomic, assign) BOOL isInPopoverState;
-@property (nonatomic, assign) BOOL animating;
+@property (nonatomic, assign) BOOL isPoping;
 
 @end
 
@@ -184,12 +184,11 @@ float const kDefaultAnimationDuration = 0.25;
 
 - (void)layoutSubviews
 {
-    if (self.animating) {
+    if (self.isPoping) {
         return;
     }
-    if (self.isInPopoverState) {
-        [self hideMasterAnimated:NO];
-    }
+    self.isInPopoverState = NO;
+    self.maskView.hidden = YES;
     NSAssert(self.delegate, @"must set the XLSplitView's delegate.");
     if ([self.delegate shouldAutoHideMasterInOrientation:[UIApplication sharedApplication].statusBarOrientation]) {
         [self.delegate willHideMaster];
@@ -217,21 +216,22 @@ float const kDefaultAnimationDuration = 0.25;
     if (self.isInPopoverState) {
         return;
     }
+    self.isPoping = YES;
     self.maskView.hidden = NO;
     [self bringSubviewToFront:self.maskView];
     [self bringSubviewToFront:self.masterView];
     self.isInPopoverState = YES;
     if (animated) {
-        self.animating = YES;
         self.masterView.clipsToBounds = YES;
         [UIView animateWithDuration:kDefaultAnimationDuration animations:^{
             self.masterView.frame = CGRectMake(0, 0, self.masterViewWidth, self.bounds.size.height);
         } completion:^(BOOL finished) {
-            self.animating = NO;
             self.masterView.clipsToBounds = NO;
+            self.isPoping = NO;
         }];
     } else {
         self.masterView.frame = CGRectMake(0, 0, self.masterViewWidth, self.bounds.size.height);
+        self.isPoping = NO;
     }
 }
 
@@ -245,18 +245,19 @@ float const kDefaultAnimationDuration = 0.25;
     if (!self.isInPopoverState) {
         return;
     }
+    self.isPoping = YES;
     self.maskView.hidden = YES;
     self.isInPopoverState = NO;
     if (animated) {
-        self.animating = YES;
         self.masterView.clipsToBounds = YES;
         [UIView animateWithDuration:kDefaultAnimationDuration animations:^{
             self.masterView.frame = CGRectMake(0, 0, 0, self.bounds.size.height);
         } completion:^(BOOL finished) {
-            self.animating = NO;
+            self.isPoping = NO;
         }];
     } else {
         self.masterView.frame = CGRectMake(0, 0, 0, self.bounds.size.height);
+        self.isPoping = NO;
     }
 }
 
@@ -345,6 +346,8 @@ typedef NS_ENUM(NSInteger, MasterAutoShowingState) {
 {
     _viewControllers = viewControllers;
     NSAssert(self.viewControllers.count == 2 && self.masterViewController != self.detailViewController, @"should exactly have two diffrent viewControllers.");
+    [self addChildViewController:self.masterViewController];
+    [self addChildViewController:self.detailViewController];
     [self.splitView setMasterView:self.masterViewController.view detailView:self.detailViewController.view];
 }
 

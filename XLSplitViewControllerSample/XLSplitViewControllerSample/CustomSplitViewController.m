@@ -20,8 +20,9 @@
 /*
     if you use storyboard, you could use like this way. just initialize the master and detail viewControllers.
  */
-- (void)awakeFromNib
+- (void)viewDidLoad
 {
+    [super viewDidLoad];
     // first initialize the two viewControllers.
     UINavigationController *masterNavController = [self.storyboard instantiateViewControllerWithIdentifier:@"MasterNavigationController"];
     UINavigationController *detailNavController = [self.storyboard instantiateViewControllerWithIdentifier:@"DetailNavigationController"];
