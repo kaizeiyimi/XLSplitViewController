@@ -72,7 +72,7 @@
 @property (nonatomic, weak) UIView *realMasterView;
 
 @property (nonatomic, assign) BOOL isInPopoverState;
-@property (nonatomic, assign) BOOL animating;
+@property (nonatomic, assign) BOOL isPoping;
 
 @end
 
@@ -184,20 +184,22 @@ float const kDefaultAnimationDuration = 0.25;
 
 - (void)layoutSubviews
 {
-    if (self.animating) {
+    [super layoutSubviews];
+    if (self.isPoping) {
         return;
     }
-    if (self.isInPopoverState) {
-        [self hideMasterAnimated:NO];
-    }
+    self.isInPopoverState = NO;
+    self.maskView.hidden = YES;
     NSAssert(self.delegate, @"must set the XLSplitView's delegate.");
     if ([self.delegate shouldAutoHideMasterInOrientation:[UIApplication sharedApplication].statusBarOrientation]) {
         [self.delegate willHideMaster];
         self.masterView.frame = CGRectMake(0, 0, 0, self.bounds.size.height);
         self.masterView.clipsToBounds = YES;
         self.detailView.frame = self.bounds;
+        [self.masterView removeFromSuperview];
     } else {
         [self.delegate willShowMaster];
+        [self addSubview:self.masterView];
         self.masterView.frame = CGRectMake(0, 0, self.masterViewWidth, self.bounds.size.height);
         self.masterView.clipsToBounds = NO;
         CGRect frame = self.bounds;
@@ -217,21 +219,24 @@ float const kDefaultAnimationDuration = 0.25;
     if (self.isInPopoverState) {
         return;
     }
+    self.isPoping = YES;
+    self.isInPopoverState = YES;
+    [self addSubview:self.masterView];
     self.maskView.hidden = NO;
     [self bringSubviewToFront:self.maskView];
     [self bringSubviewToFront:self.masterView];
-    self.isInPopoverState = YES;
     if (animated) {
-        self.animating = YES;
         self.masterView.clipsToBounds = YES;
         [UIView animateWithDuration:kDefaultAnimationDuration animations:^{
             self.masterView.frame = CGRectMake(0, 0, self.masterViewWidth, self.bounds.size.height);
         } completion:^(BOOL finished) {
-            self.animating = NO;
             self.masterView.clipsToBounds = NO;
+            self.isPoping = NO;
         }];
     } else {
         self.masterView.frame = CGRectMake(0, 0, self.masterViewWidth, self.bounds.size.height);
+        [self layoutIfNeeded];
+        self.isPoping = NO;
     }
 }
 
@@ -245,18 +250,23 @@ float const kDefaultAnimationDuration = 0.25;
     if (!self.isInPopoverState) {
         return;
     }
-    self.maskView.hidden = YES;
+    self.isPoping = YES;
     self.isInPopoverState = NO;
+    self.maskView.hidden = YES;
     if (animated) {
-        self.animating = YES;
         self.masterView.clipsToBounds = YES;
         [UIView animateWithDuration:kDefaultAnimationDuration animations:^{
             self.masterView.frame = CGRectMake(0, 0, 0, self.bounds.size.height);
         } completion:^(BOOL finished) {
-            self.animating = NO;
+            [self.masterView removeFromSuperview];
+            [self layoutIfNeeded];
+            self.isPoping = NO;
         }];
     } else {
         self.masterView.frame = CGRectMake(0, 0, 0, self.bounds.size.height);
+        [self.masterView removeFromSuperview];
+        [self layoutIfNeeded];
+        self.isPoping = NO;
     }
 }
 
