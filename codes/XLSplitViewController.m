@@ -53,6 +53,7 @@
 
 @property (nonatomic, assign) CGFloat splitLineWidth;
 @property (nonatomic, assign) CGFloat masterWidth;
+@property (nonatomic, assign, readonly) BOOL isMasterVisible;
 
 - (void)setMasterView:(UIView *)masterView detailView:(UIView *)detailView;
 - (void)toggleMasterVisible;
@@ -73,6 +74,7 @@
 
 @property (nonatomic, assign) BOOL isInPopoverState;
 @property (nonatomic, assign) BOOL isPoping;
+@property (nonatomic, assign) BOOL isMasterVisible;
 
 @end
 
@@ -195,6 +197,7 @@ float const kDefaultAnimationDuration = 0.25;
         self.masterView.frame = CGRectMake(0, 0, 0, self.bounds.size.height);
         self.masterView.clipsToBounds = YES;
         self.detailView.frame = self.bounds;
+        self.isMasterVisible = NO;
     } else {
         [self.delegate willShowMaster];
         self.masterView.frame = CGRectMake(0, 0, self.masterViewWidth, self.bounds.size.height);
@@ -203,6 +206,7 @@ float const kDefaultAnimationDuration = 0.25;
         frame.origin.x = self.masterViewWidth;
         frame.size.width = self.bounds.size.width - self.masterViewWidth;
         self.detailView.frame = frame;
+        self.isMasterVisible = YES;
     }
 }
 
@@ -221,6 +225,7 @@ float const kDefaultAnimationDuration = 0.25;
     [self bringSubviewToFront:self.maskView];
     [self bringSubviewToFront:self.masterView];
     self.isInPopoverState = YES;
+    self.isMasterVisible = YES;
     if (animated) {
         self.masterView.clipsToBounds = YES;
         [UIView animateWithDuration:kDefaultAnimationDuration animations:^{
@@ -248,6 +253,7 @@ float const kDefaultAnimationDuration = 0.25;
     self.isPoping = YES;
     self.maskView.hidden = YES;
     self.isInPopoverState = NO;
+    self.isMasterVisible = NO;
     if (animated) {
         self.masterView.clipsToBounds = YES;
         [UIView animateWithDuration:kDefaultAnimationDuration animations:^{
@@ -330,6 +336,11 @@ typedef NS_ENUM(NSInteger, MasterAutoShowingState) {
 - (UIColor *)splitLineColor
 {
     return self.splitView.backgroundColor;
+}
+
+- (BOOL)isMasterVisible
+{
+    return self.splitView.isMasterVisible;
 }
 
 - (UIViewController *)masterViewController

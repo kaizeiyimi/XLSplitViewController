@@ -85,6 +85,9 @@
 /// the color of the split line.
 @property (nonatomic, strong) UIColor *splitLineColor;
 
+/// check whether the master is visible.
+@property (nonatomic, assign, readonly) BOOL isMasterVisible;
+
 /// helper method. @return the first viewController of the splitViewController.
 - (UIViewController *)masterViewController;
 
